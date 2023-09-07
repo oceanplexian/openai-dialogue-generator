@@ -37,12 +37,19 @@ if api_key_source == "json":  # Access the keys from a json file in the root dir
     json_secrets = "secrets.json"
 
     # Open JSON file
-    with open(json_secrets) as file:
-        json_data = json.load(file)
+    #with open(json_secrets) as file:
+    #    json_data = json.load(file)
 
     # Define API values, and setting to openai attributes
-    openai.api_key = json_data["openai_api_key"]
-    openai.organization = json_data["openai_org_id"]
+    openai.api_type = "azure"
+    openai.api_key = "dummy"
+    openai.api_base = "http://10.10.0.127:5001"
+    openai.api_version = "2023-05-15"
+
+    #openai.api_key = json_data["openai_api_key"]
+    #openai.organization = json_data["openai_org_id"]
+
+    deployment_name='test_deployment' 
 
 if api_key_source == "input":  # Prompt for the input of the API keys
     openai.api_key = input("Input the API key:\n").strip()
@@ -70,12 +77,12 @@ def run_script():
     character_b_name_input = [{"role": "user", "content": character_b_message}]
 
     # Prompting ChatGPT for the name of the first character and then saving that as a variable with newlines removed
-    name_a_response = openai.ChatCompletion.create(model=selected_model, messages=character_a_name_input)
+    name_a_response = openai.ChatCompletion.create(engine=deployment_name, model=selected_model, messages=character_a_name_input)
     name_a_string_raw = name_a_response["choices"][0]["message"]["content"]
     name_a_string_clean = name_a_string_raw.replace("\n", "")
 
     # Prompting ChatGPT for the name of the second character and then saving that as a variable with newlines removed
-    name_b_response = openai.ChatCompletion.create(model=selected_model, messages=character_b_name_input)
+    name_b_response = openai.ChatCompletion.create(engine=deployment_name, model=selected_model, messages=character_b_name_input)
     name_b_string_raw = name_b_response["choices"][0]["message"]["content"]
     name_b_string_clean = name_b_string_raw.replace("\n", "")
 
@@ -141,7 +148,7 @@ def run_script():
 
     # Function to get the response object based on a selected model and messages dict
     def get_response(model, messages):
-        response_in_func = openai.ChatCompletion.create(model=model, messages=messages)
+        response_in_func = openai.ChatCompletion.create(engine=deployment_name, model=model, messages=messages)
         return response_in_func
 
     # Function to return the message dict from the response object
@@ -186,17 +193,16 @@ def run_script():
     # While loop to continue the conversation based on user input
     while True:
         # Requesting user response
-        print("How should the conversation continue?")
-        print("1. Let the AI decide")
-        print("2. Describe what happens next")
-        print("3. End the conversation")
-        user_response = input("\nEnter a number (1-3):\n")
-
+        # print("How should the conversation continue?")
+        # print("1. Let the AI decide")
+        # print("2. Describe what happens next")
+        # print("3. End the conversation")
+        # user_response = input("\nEnter a number (1-3):\n")
+        user_response = "1"
         # Setting the break condition
         if user_response == "1":
             new_message = "Continue the conversation."
             rolling_messages.append({"role": "user", "content": new_message})
-            print(sep_line)
             generate_response()
         elif user_response == "2":
             new_message = input("\nDescribe what happens next:\n")
@@ -265,7 +271,6 @@ def run_script():
             continue
 
     # Print seperator line
-    print(sep_line)
 
 
 # Initial run of the script
